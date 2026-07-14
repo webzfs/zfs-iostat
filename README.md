@@ -8,7 +8,7 @@ This repo contains the Python implementation, I am planning on a C++ version but
 
 - Linux with the ZFS kernel module loaded (the tool reads `/proc/spl/kstat/zfs`), or FreeBSD with ZFS loaded (the tool reads the `kstat.zfs` sysctl tree).
 - Python 3.11 or newer.
-- Root is not required on Linux for the iostat and top views. For the files view, root lets you see files opened by other users' processes.
+- Root is not required on Linux, root lets you see files opened by other users' processes.
 
 ## Platform support
 
@@ -17,7 +17,7 @@ The tool runs on both Linux and FreeBSD and detects the platform at runtime.
 - Linux: dataset counters come from `/proc/spl/kstat/zfs`, the mount map from `/proc/self/mounts`, and the files view from `/proc/<pid>/fd` and `/proc/<pid>/fdinfo`.
 - FreeBSD: dataset counters come from the `kstat.zfs` sysctl tree (read with `sysctl`), the mount map from `mount -p`, and the files view from `procstat -af`. (Root required on FreeBSD)
 
-FreeBSD note: the dataset sysctls do not expose the counter creation and snapshot times, so the lifetime average first report (the since mount numbers) is not available on FreeBSD. The first report is skipped, the same as passing `-y`. Give an interval to see per interval rates. If you run the tool with no interval on FreeBSD, it prints a note explaining this.
+FreeBSD note: the dataset sysctls do not expose the counter creation and snapshot times, so the lifetime average first report (the since mount numbers) is not available on FreeBSD. The first report is skipped, the same as passing `-y`.
 
 ## Running
 
@@ -44,18 +44,12 @@ The tool has three views. The default is the iostat table. The other two are sel
 Prints a `zpool iostat` style table of per dataset read and write operations and bandwidth.
 
 ```
-zfs_iostat.py
+zfs_iostat.py ceres/* 1
 ```
 
 Example output:
 
-```
-                              operations          bandwidth
-dataset                       read     write      read     write
------------------------- --------- --------- --------- ---------
-tank/data                      124        31     15.2M      3.1M
-tank/home                        0         2         0        24K
-```
+![](./images/zfs-iostat_classic-mode.png)
 
 The first report shows averages over the life of each dataset's counters, the same as `zpool iostat`. When you give an interval, each later report shows the rate over the time since the previous sample.
 
@@ -64,8 +58,7 @@ The first report shows averages over the life of each dataset's counters, the sa
 A live, full screen ranked display of datasets sorted by current I/O rate, in the spirit of `top` or `nethogs`.
 
 ```
-zfs_iostat.py -t
-zfs_iostat.py -t 2        # refresh every 2 seconds
+zfs_iostat.py -t ceres/* 1        # refresh every second
 ```
 
 Keys while it is running:
@@ -77,23 +70,20 @@ Keys while it is running:
 - `p` sort by write operations
 - `t` sort by total bandwidth (default)
 
+Example output:
+
+![](./images/zfs-iostat_top-mode.png)
+
 ### files view (`-f`)
 
 An `lsof` style listing of open files on ZFS datasets, with an ACTIVE column that flags files whose read/write offset moved between scans.
 
-```
-zfs_iostat.py -f
-sudo zfs_iostat.py -f     # see files from all users' processes
-```
+```zfs_iostat.py -f ceres/* 1```
+(run as root to see files from all users' processes)
 
 Example output:
 
-```
-DATASET          ACTIVE MODE PID     PROCESS       FILE
-tank/vm/images   yes    rw   2214    qemu-kvm      /tank/vm/images/win.qcow2
-tank/data        yes    r    8841    rsync         /tank/data/projects/big.tar
-tank/data        no     r    1023    smbd          /tank/data/media/song.mp3
-```
+![](./images/zfs-iostat_file-mode.png)
 
 Limitations of the files view:
 
@@ -112,7 +102,7 @@ The positional arguments follow `zpool iostat` conventions:
 
 - No dataset: report all mounted datasets and active zvols.
 - `dataset`: report exactly that dataset (for example `tank/data`).
-- `dataset/*`: report that dataset and all of its descendants. Quote it so the shell does not expand the `*`, for example `"tank/data/*"`.
+- `dataset/*`: report that dataset and all of its descendants. You may need to quote it depending on your shell
 - `interval`: seconds between reports. With no interval, one report is printed and the tool exits. Fractional values are allowed, for example
   `0.5`.
 - `count`: number of reports to print, then exit. Only valid after an interval.
@@ -127,7 +117,7 @@ zfs_iostat.py 2               # every 2 seconds, all datasets
 zfs_iostat.py 2 5             # 5 reports at 2 second intervals
 zfs_iostat.py tank/data       # one report for tank/data
 zfs_iostat.py tank/data 1     # tank/data every second
-zfs_iostat.py "tank/*" 2      # tank and all descendants, every 2s
+zfs_iostat.py tank/* 2      # tank and all descendants, every 2s
 ```
 
 Press Ctrl-C at any time to exit cleanly.
