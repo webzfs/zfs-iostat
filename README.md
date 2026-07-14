@@ -21,11 +21,12 @@ FreeBSD note: the dataset sysctls do not expose the counter creation and snapsho
 
 ## Running
 
-The tool is a plain script. Run it with Python:
+The tool is a plain script. Run it with Python: 
 
 ```
 python3 zfs_iostat.py [options] [dataset | dataset/*] [interval [count]]
 ```
+(replace `python3` with whatever your python binary is)
 
 You can also mark it executable and run it directly:
 
@@ -43,7 +44,7 @@ The tool has three views. The default is the iostat table. The other two are sel
 Prints a `zpool iostat` style table of per dataset read and write operations and bandwidth.
 
 ```
-python3 zfs_iostat.py
+zfs_iostat.py
 ```
 
 Example output:
@@ -63,8 +64,8 @@ The first report shows averages over the life of each dataset's counters, the sa
 A live, full screen ranked display of datasets sorted by current I/O rate, in the spirit of `top` or `nethogs`.
 
 ```
-python3 zfs_iostat.py -t
-python3 zfs_iostat.py -t 2        # refresh every 2 seconds
+zfs_iostat.py -t
+zfs_iostat.py -t 2        # refresh every 2 seconds
 ```
 
 Keys while it is running:
@@ -81,8 +82,8 @@ Keys while it is running:
 An `lsof` style listing of open files on ZFS datasets, with an ACTIVE column that flags files whose read/write offset moved between scans.
 
 ```
-python3 zfs_iostat.py -f
-sudo python3 zfs_iostat.py -f     # see files from all users' processes
+zfs_iostat.py -f
+sudo zfs_iostat.py -f     # see files from all users' processes
 ```
 
 Example output:
@@ -121,12 +122,12 @@ Numbers are always treated as interval or count, never as a dataset name, becaus
 Examples:
 
 ```
-python3 zfs_iostat.py                 # one report, all datasets
-python3 zfs_iostat.py 2               # every 2 seconds, all datasets
-python3 zfs_iostat.py 2 5             # 5 reports at 2 second intervals
-python3 zfs_iostat.py tank/data       # one report for tank/data
-python3 zfs_iostat.py tank/data 1     # tank/data every second
-python3 zfs_iostat.py "tank/*" 2      # tank and all descendants, every 2s
+zfs_iostat.py                 # one report, all datasets
+zfs_iostat.py 2               # every 2 seconds, all datasets
+zfs_iostat.py 2 5             # 5 reports at 2 second intervals
+zfs_iostat.py tank/data       # one report for tank/data
+zfs_iostat.py tank/data 1     # tank/data every second
+zfs_iostat.py "tank/*" 2      # tank and all descendants, every 2s
 ```
 
 Press Ctrl-C at any time to exit cleanly.
@@ -149,11 +150,11 @@ Press Ctrl-C at any time to exit cleanly.
 Examples:
 
 ```
-python3 zfs_iostat.py -H -p              # tab separated exact counts
-python3 zfs_iostat.py -y 1               # skip the lifetime report
-python3 zfs_iostat.py -t -s read         # top view sorted by read bandwidth
-python3 zfs_iostat.py --json             # JSON array of per dataset rates
-python3 zfs_iostat.py -f --json          # JSON array of open files
+zfs_iostat.py -H -p              # tab separated exact counts
+zfs_iostat.py -y 1               # skip the lifetime report
+zfs_iostat.py -t -s read         # top view sorted by read bandwidth
+zfs_iostat.py --json             # JSON array of per dataset rates
+zfs_iostat.py -f --json          # JSON array of open files
 ```
 
 Example JSON output (formatted here for readability; the tool prints it on a single line):
