@@ -1068,10 +1068,17 @@ def print_files_report(entries, options):
               f" {entry.pid:<7} {entry.process_name:<16} {entry.file_path}")
 
 
+def filter_file_entries(entries, dataset_argument):
+    """Apply the CLI dataset selection to a list of OpenFileEntry objects."""
+    return [entry for entry in entries
+            if dataset_matches(entry.dataset_name, dataset_argument)]
+
+
 def scan_and_mark(mount_map, previous_offsets):
     """One open file scan. Marks entries whose offset moved as active."""
     entries = scan_open_files(mount_map)
     offsets = {}
+
     for entry in entries:
         entry_key = (entry.pid, entry.file_path)
         offsets[entry_key] = entry.offset
@@ -1090,6 +1097,7 @@ def run_files(options):
         _, first_offsets = scan_and_mark(mount_map, {})
         time.sleep(1.0)
         entries, _ = scan_and_mark(mount_map, first_offsets)
+        entries = filter_file_entries(entries, options.dataset)
         print_files_report(entries, options)
         return 0
 
@@ -1097,7 +1105,9 @@ def run_files(options):
     reports_printed = 0
     while options.count is None or reports_printed < options.count:
         entries, previous_offsets = scan_and_mark(mount_map, previous_offsets)
+        entries = filter_file_entries(entries, options.dataset)
         print_files_report(entries, options)
+
         reports_printed += 1
         if options.count is not None and reports_printed >= options.count:
             break
